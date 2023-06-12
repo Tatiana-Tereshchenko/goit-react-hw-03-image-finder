@@ -4,13 +4,8 @@ import { Loader } from './Loader/Loader';
 import { Modal } from './Modal/Modal';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
-import axios from 'axios';
+import { ApiService } from './ApiService/ApiService';
 import css from './App.module.css';
-
-const API_KEY = '35750052-8f7833963258536162b8e8fdc';
-const BASE_URL = 'https://pixabay.com/api/';
-
-
 
 
 
@@ -23,26 +18,33 @@ export class App extends Component {
       isLoading: false,
       currentPage: 1,
       selectedImage: null,
+      totalPages: 0,
     };
+  }
+
+  componentDidMount() {
+    this.fetchImages();
+  }
+
+  componentDidUpdate(prevState) {
+    if (
+      prevState.searchQuery !== this.state.searchQuery ||
+      prevState.currentPage !== this.state.currentPage
+    ) {
+      this.fetchImages();
+    }
   }
 
   fetchImages = () => {
     const { searchQuery, currentPage } = this.state;
     this.setState({ isLoading: true });
-    axios
-      .get(BASE_URL, {
-        params: {
-          key: API_KEY,
-          q: searchQuery,
-          page: currentPage,
-          per_page: 12,
-          image_type: 'photo',
-          orientation: 'horizontal',
-        },
-      })
+
+    ApiService.fetchImages(searchQuery, currentPage)
       .then((response) => {
+        const { hits, totalHits } = response.data;
         this.setState((prevState) => ({
-          images: [...prevState.images, ...response.data.hits],
+          images: [...prevState.images, ...hits],
+          totalPages: Math.ceil(totalHits / 12),
         }));
       })
       .catch((error) => {
@@ -54,14 +56,17 @@ export class App extends Component {
   };
 
   handleSubmit = (query) => {
-    this.setState({ searchQuery: query, currentPage: 1, images: [] }, this.fetchImages);
+    this.setState(
+      { searchQuery: query, currentPage: 1, images: [], totalPages: 0 },
+      this.fetchImages
+    );
   };
 
   handleLoadMore = () => {
-    this.setState(
-      (prevState) => ({ currentPage: prevState.currentPage + 1 }),
-      this.fetchImages
-    );
+    const { currentPage, totalPages } = this.state;
+    if (currentPage < totalPages) {
+      this.setState((prevState) => ({ currentPage: prevState.currentPage + 1 }), this.fetchImages);
+    }
   };
 
   handleImageClick = (imageUrl) => {
@@ -73,14 +78,15 @@ export class App extends Component {
   };
 
   render() {
-    const { images, isLoading, selectedImage } = this.state;
+    const { images, isLoading, selectedImage, currentPage, totalPages } = this.state;
+    const showLoadMoreButton = images.length > 0 && currentPage < totalPages;
 
     return (
-      <div className={css.conteiner}>
+      <div className={css.container}>
         <Searchbar onSubmit={this.handleSubmit} />
         <ImageGallery images={images} onItemClick={this.handleImageClick} />
         {isLoading && <Loader />}
-        {!!images.length && <Button onClick={this.handleLoadMore} />}
+        {showLoadMoreButton && <Button onClick={this.handleLoadMore} />}
         {selectedImage && <Modal imageUrl={selectedImage} onClose={this.handleCloseModal} />}
       </div>
     );
