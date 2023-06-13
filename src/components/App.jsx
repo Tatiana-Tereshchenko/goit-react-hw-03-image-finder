@@ -22,11 +22,7 @@ export class App extends Component {
     };
   }
 
-  componentDidMount() {
-    this.fetchImages();
-  }
-
-  componentDidUpdate(prevState) {
+  componentDidUpdate(prevProps, prevState) {
     if (
       prevState.searchQuery !== this.state.searchQuery ||
       prevState.currentPage !== this.state.currentPage
@@ -65,7 +61,7 @@ export class App extends Component {
   handleLoadMore = () => {
     const { currentPage, totalPages } = this.state;
     if (currentPage < totalPages) {
-      this.setState((prevState) => ({ currentPage: prevState.currentPage + 1 }), this.fetchImages);
+      this.setState((prevState) => ({ currentPage: prevState.currentPage + 1 }));
     }
   };
 
