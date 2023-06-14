@@ -39,7 +39,7 @@ export class App extends Component {
       .then((response) => {
         const { hits, totalHits } = response.data;
         this.setState((prevState) => ({
-          images: [...prevState.images, ...hits],
+          images: currentPage === 1 ? hits : [...prevState.images, ...hits],
           totalPages: Math.ceil(totalHits / 12),
         }));
       })
@@ -61,7 +61,10 @@ export class App extends Component {
   handleLoadMore = () => {
     const { currentPage, totalPages } = this.state;
     if (currentPage < totalPages) {
-      this.setState((prevState) => ({ currentPage: prevState.currentPage + 1 }));
+      this.setState(
+        (prevState) => ({ currentPage: prevState.currentPage + 1, isLoading: true }),
+        this.fetchImages
+      );
     }
   };
 
