@@ -54,7 +54,7 @@ export class App extends Component {
   handleSubmit = (query) => {
     this.setState(
       { searchQuery: query, currentPage: 1, images: [], totalPages: 0 },
-      this.fetchImages
+     
     );
   };
 
@@ -63,7 +63,7 @@ export class App extends Component {
     if (currentPage < totalPages) {
       this.setState(
         (prevState) => ({ currentPage: prevState.currentPage + 1, isLoading: true }),
-        this.fetchImages
+       
       );
     }
   };
